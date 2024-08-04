@@ -6,7 +6,7 @@ import numpy as np
 from source.tensoralgebra import *
 
 # params for matter
-scalar_mu = 1.0 # this is an inverse length scale related to the scalar compton wavelength
+scalar_mu = 0.0 # this is an inverse length scale related to the scalar compton wavelength
 
 # The scalar potential
 def V_of_u(u) :
