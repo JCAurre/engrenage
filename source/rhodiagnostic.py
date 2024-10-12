@@ -6,18 +6,18 @@ import time
 
 # homemade code
 from source.uservariables import *
-from source.Grid import *
+from source.grid import *
 from source.tensoralgebra import *
 from source.mymatter import *
 
 
-def get_rho_diagnostic(solutions_over_time, t, my_grid) :
+def get_rho_diagnostic(solutions_over_time, t, grid: Grid) :
 
     start = time.time()
     
     # For readability
-    r = my_grid.r_vector
-    N = my_grid.num_points_r
+    r = grid.r
+    N = grid.num_points
     
     rho = []
     num_times = int(np.size(solutions_over_time) / (NUM_VARS * N))
@@ -32,20 +32,37 @@ def get_rho_diagnostic(solutions_over_time, t, my_grid) :
         else :
             solution = solutions_over_time[i]
 
+        state = solution.reshape(NUM_VARS, -1)
+
         # Assign the variables to parts of the solution
-        (u, v , phi, hrr, htt, hpp, K, 
-         arr, att, app, lambdar, shiftr, br, lapse) = np.array_split(solution, NUM_VARS)
+        (
+            u, v ,
+            phi, hrr, htt, hpp,
+            K, arr, att, app,
+            lambdar, shiftr, br, lapse,
+        ) = state
               
         # Calculate some useful quantities
         ########################################################
         h = np.array([hrr, htt, hpp])
         em4phi = np.exp(-4.0*phi)  
         bar_gamma_UU = get_inverse_metric(r, h)
-        dudx       = np.dot(my_grid.derivatives.d1_matrix, u      )      
+
+
+
+        # First derivatives
+        first_derivative_indices = [
+            idx_u,
+        ]
+        dstate_dr = grid.get_first_derivative(state, first_derivative_indices)
+
+        (
+            du_dr
+        ) = dstate_dr[first_derivative_indices]
 
         # Matter sources
-        matter_rho            = get_rho(u, dudx, v, bar_gamma_UU, em4phi )
-        rho_i = matter_rho
+        matter_rho            = get_rho(u, du_dr, v, bar_gamma_UU, em4phi )
+        rho_i = matter_rho[0]
         
         # Add the rho value to the output
         rho.append(rho_i)
