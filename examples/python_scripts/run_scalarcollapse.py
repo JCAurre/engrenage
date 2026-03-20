@@ -138,6 +138,8 @@ parser.add_argument("--r0", type=float, default=1.0)
 parser.add_argument("--Omega", type=float, default=1.0)
 parser.add_argument("--r_max", type=float, default=10.0)
 parser.add_argument("--min_dr", type=float, default=0.1)
+parser.add_argument("--outdir", type=str, default=None,
+                    help="Output directory (overrides default naming)")
 
 args = parser.parse_args()
 
@@ -151,7 +153,7 @@ params_grid = [r_max, min_dr, max_dr, T]
 
 # --- output ---
 output_vars = [{"u", "v"}, {"lapse", "phi", "K"}]
-output_folder = "output"
+output_folder = args.outdir or f"output"
 os.makedirs(output_folder, exist_ok=True)
 
 # --- fixed matter parameter ---
