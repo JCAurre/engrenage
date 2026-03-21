@@ -1,0 +1,88 @@
+#!/bin/bash
+#----------------------------------------------------
+# Example Slurm job script
+# for TACC Stampede3 ICX nodes
+#
+#   *** Hybrid Job in ICX Queue ***
+# 
+#       This sample script specifies:
+#         10 nodes (capital N)
+#         40 total MPI tasks (lower case n); this is 4 tasks/node
+#         20 OpenMP threads per MPI task (80 threads per node)
+#
+# Last revised: 23 April 2024
+#
+# Notes:
+#
+#   -- Launch this script by executing
+#      "sbatch icx.mpi.slurm" on Stampede3 login node.
+#
+#   -- Use ibrun to launch MPI codes on TACC systems.
+#      Do not use mpirun or mpiexec.
+#
+#   -- In most cases it's best to keep
+#      ( MPI ranks per node ) x ( threads per rank )
+#      to a number no more than 80 (total cores).
+#
+#   -- If you're running out of memory, try running
+#      fewer tasks and/or threads per node to give each 
+#      process access to more memory.
+#
+#   -- If you're running out of memory, try running
+#      on more nodes using fewer tasks and/or threads 
+#      per node to give each task access to more memory.
+#
+#   -- Don't worry about task layout.  By default, ibrun
+#      will provide proper affinity and pinning.
+#
+#   -- You should always run out of $SCRATCH.  Your input
+#      files, output files, and executable should be 
+#      in the $SCRATCH directory hierarchy.
+#
+#----------------------------------------------------
+
+#SBATCH -J hrsc # Job name
+#SBATCH -o std_out.txt       # Name of stdout output file
+#SBATCH -e std_error.txt       # Name of stderr error file
+#SBATCH -p spr             # Queue (partition) name
+#SBATCH -N 1              # Total # of nodes 
+#SBATCH --ntasks-per-node=112
+#SBATCH --cpus-per-task=1
+#SBATCH -t 12:00:00        # Run time (hh:mm:ss)
+# #SBATCH --mail-user=jaurreko@mit.edu
+#SBATCH --mail-type=all    # Send email at begin and end of job
+#SBATCH -A TG-PHY090003       # Allocation name (req'd if you have more than 1)
+
+# Other commands must follow all #SBATCH directives...
+
+module list
+pwd
+date
+
+# Set thread count (default value is 1)...
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+# Always run your jobs out of $SCRATCH.  Your input files, output files, 
+# and exectuable should be in the $SCRATCH directory hierarchy.  
+# Change directories to your $SCRATCH directory where your executable is
+
+# cd $SCRATCH
+
+# Launch MPI code... 
+
+ampl=1e-4
+wid=20
+r0=150
+r_max=400
+T=400
+
+dr_LR=0.6
+dr_MR=0.3
+dr_HR=0.15
+
+ibrun python ./run_scalarcollapse.py --ampl "$ampl" --T "$T" --wid "$wid" --r0 "$r0" --r_max "$r_max" --min_dr "$dr_LR" --outdir "output_LR_dt"
+
+ibrun python ./run_scalarcollapse.py --ampl "$ampl" --T "$T" --wid "$wid" --r0 "$r0" --r_max "$r_max" --min_dr "$dr_MR" --outdir "output_MR_dt"
+
+ibrun python ./run_scalarcollapse.py --ampl "$ampl" --T "$T" --wid "$wid" --r0 "$r0" --r_max "$r_max" --min_dr "$dr_HR" --outdir "output_HR_dt"

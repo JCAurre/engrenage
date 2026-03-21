@@ -74,7 +74,7 @@ def run_example(params_grid, params_matter, output_vars, output_dir, output_name
                             atol=atol, rtol=rtol,
                             first_step = dt,
                             method='DOP853', dense_output=True)
-    num_points_t = 512
+    num_points_t = 1024
     t = np.linspace(0, T, num_points_t)
     solution = dense_solution.sol(t).T
     
